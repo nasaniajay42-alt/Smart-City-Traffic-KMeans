@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Segmentation | K-Means ML Platform</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-badge">Academic ML Project</div>
+      <div class="brand-title">
+        <i class="bi bi-diagram-3-fill"></i>
+        <span>CustomerAI</span>
+      </div>
+      <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">K-Means Segmentation</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Core Navigation</div>
+      <a href="/" class="nav-link active">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/dataset" class="nav-link">
+        <i class="bi bi-table"></i>
+        <span>Dataset Explorer</span>
+      </a>
+      <a href="/analysis" class="nav-link">
+        <i class="bi bi-bar-chart-line"></i>
+        <span>Exploratory EDA</span>
+      </a>
+
+      <div class="nav-section-label">Machine Learning</div>
+      <a href="/training" class="nav-link">
+        <i class="bi bi-cpu"></i>
+        <span>Model Training</span>
+      </a>
+      <a href="/clusters" class="nav-link">
+        <i class="bi bi-pie-chart"></i>
+        <span>Cluster Profiles</span>
+      </a>
+      <a href="/prediction" class="nav-link">
+        <i class="bi bi-person-check"></i>
+        <span>Live Predictor</span>
+      </a>
+
+      <div class="nav-section-label">Documentation</div>
+      <a href="/reports" class="nav-link">
+        <i class="bi bi-file-earmark-pdf"></i>
+        <span>Reports & Export</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-indicator">
+        <span class="dot"></span>
+        <span>K-Means Model Online</span>
+      </div>
+      <div>Algorithm: K-Means++ (K=5)</div>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <!-- Top Navbar -->
+    <header class="top-navbar">
+      <div class="d-flex align-items-center gap-3">
+        <button id="sidebar-toggle" class="btn btn-outline-custom d-lg-none">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h1 class="page-header-title">Customer Segmentation Dashboard</h1>
+          <p class="page-header-subtitle mb-0">Unsupervised Purchasing Behaviour Analysis via K-Means Clustering & StandardScaler</p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <a href="/prediction" class="btn btn-primary-custom">
+          <i class="bi bi-lightning-charge-fill"></i>
+          <span>Predict Segment</span>
+        </a>
+        <a href="/reports" class="btn btn-navy-custom">
+          <i class="bi bi-download"></i>
+          <span>Export Report</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Content Body -->
+    <main class="content-body">
+      <div id="alert-container"></div>
+
+      <!-- Academic Project Banner -->
+      <div class="card-custom mb-4 p-4" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: #ffffff;">
+        <div class="row align-items-center">
+          <div class="col-lg-8">
+            <span class="badge bg-primary mb-2" style="font-size: 11px; letter-spacing: 0.5px;">B.Tech Academic Machine Learning Project</span>
+            <h2 class="h4 fw-bold mb-2">Automated Behavioral Customer Segmentation using K-Means Clustering</h2>
+            <p class="mb-0 text-slate-200" style="color: #cbd5e1; font-size: 13.5px; line-height: 1.6;">
+              This system applies unsupervised machine learning to partition retail customer cohorts into distinct behavioral profiles.
+              StandardScaler normalizes income and spending scores, the Elbow Method and Silhouette Analysis optimize cluster cohesion,
+              and empirical centroid profiling automatically derives actionable marketing personas.
+            </p>
+          </div>
+          <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+            <div class="p-3 rounded" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px); display: inline-block; text-align: left;">
+              <div style="font-size: 11.5px; color: #93c5fd; font-weight: 600;">ACTIVE DATASET</div>
+              <div style="font-weight: 700; font-size: 15px;">Mall Customer Dataset</div>
+              <div style="font-size: 12px; color: #e2e8f0;">200 Records • 5 Features</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 KPI Summary Cards -->
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3 mb-4">
+        <!-- 1. Total Customers -->
+        <div class="col">
+          <div class="kpi-card kpi-navy h-100">
+            <div class="kpi-title">
+              <span>Total Customers</span>
+              <div class="kpi-icon-wrap"><i class="bi bi-people-fill"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-total-customers">---</div>
+            <div class="kpi-subtitle">Observed customer records</div>
+          </div>
+        </div>
+
+        <!-- 2. Number of Clusters -->
+        <div class="col">
+          <div class="kpi-card kpi-green h-100">
+            <div class="kpi-title">
+              <span>Clusters (K)</span>
+              <div class="kpi-icon-wrap" style="color: var(--success); background: #ecfdf5;"><i class="bi bi-diagram-3-fill"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-n-clusters">---</div>
+            <div class="kpi-subtitle">Trained partition count</div>
+          </div>
+        </div>
+
+        <!-- 3. Average Annual Income -->
+        <div class="col">
+          <div class="kpi-card kpi-amber h-100">
+            <div class="kpi-title">
+              <span>Avg Annual Income</span>
+              <div class="kpi-icon-wrap" style="color: var(--warning); background: #fffbeb;"><i class="bi bi-cash-stack"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-avg-income">---</div>
+            <div class="kpi-subtitle">Sample mean annual earnings</div>
+          </div>
+        </div>
+
+        <!-- 4. Average Spending Score -->
+        <div class="col">
+          <div class="kpi-card kpi-purple h-100">
+            <div class="kpi-title">
+              <span>Avg Spending Score</span>
+              <div class="kpi-icon-wrap" style="color: var(--purple); background: #f5f3ff;"><i class="bi bi-cart-check-fill"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-avg-spending">---</div>
+            <div class="kpi-subtitle">Purchasing rating (1–100)</div>
+          </div>
+        </div>
+
+        <!-- 5. Silhouette Score -->
+        <div class="col">
+          <div class="kpi-card h-100">
+            <div class="kpi-title">
+              <span>Silhouette Score</span>
+              <div class="kpi-icon-wrap"><i class="bi bi-award-fill"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-sil-score">---</div>
+            <div class="kpi-subtitle">Cohesion & separation index</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="row g-4 mb-4">
+        <!-- Clustered Customers Scatter Preview -->
+        <div class="col-lg-8">
+          <div class="card-custom h-100">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-scatter-chart"></i> Customer Segmentation Overview</h5>
+              <a href="/clusters" class="btn btn-outline-custom btn-sm">Full Analysis & PCA</a>
+            </div>
+            <div class="card-body-custom">
+              <div style="height: 360px;">
+                <canvas id="dashboard-cluster-scatter"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cluster Size Share -->
+        <div class="col-lg-4">
+          <div class="card-custom h-100">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-pie-chart-fill"></i> Segment Distribution</h5>
+              <span class="badge bg-light text-dark border">Share %</span>
+            </div>
+            <div class="card-body-custom d-flex flex-column justify-content-center">
+              <div style="height: 280px;">
+                <canvas id="dashboard-cluster-doughnut"></canvas>
+              </div>
+              <div class="mt-3 text-center text-muted" style="font-size: 12px;">
+                Proportion of customer volume assigned across empirical clusters.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Model Info & Methodology Row -->
+      <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+          <div class="card-custom h-100">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-cpu-fill"></i> Active Model Parameters & Convergence</h5>
+            </div>
+            <div class="card-body-custom">
+              <table class="table table-sm align-middle mb-0">
+                <tbody>
+                  <tr>
+                    <td class="text-muted fw-semibold">Model Status:</td>
+                    <td id="model-status-text"><span class="badge bg-secondary">Checking...</span></td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted fw-semibold">Clustering Algorithm:</td>
+                    <td><strong>K-Means++ (Scikit-Learn)</strong></td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted fw-semibold">Active Input Features:</td>
+                    <td id="model-features-text">Age, Annual Income (k$), Spending Score (1-100)</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted fw-semibold">Feature Preprocessing:</td>
+                    <td>StandardScaler (Zero-mean, Unit-variance)</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted fw-semibold">Dimensionality Reduction:</td>
+                    <td>PCA (2 Components for Multi-Feature Mapping)</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted fw-semibold">Within-Cluster Inertia (WCSS):</td>
+                    <td id="model-inertia-text" class="fw-bold text-primary">---</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card-custom h-100">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-mortarboard-fill"></i> Academic ML Workflow</h5>
+            </div>
+            <div class="card-body-custom">
+              <div class="d-flex flex-column gap-3" style="font-size: 13px;">
+                <div class="d-flex gap-3 align-items-start">
+                  <span class="badge bg-primary rounded-circle p-2" style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">1</span>
+                  <div><strong>Standardization:</strong> Distance calculation in K-Means is Euclidean; raw feature scaling prevents income ($15k–$137k) from dominating spending score (1–100).</div>
+                </div>
+                <div class="d-flex gap-3 align-items-start">
+                  <span class="badge bg-primary rounded-circle p-2" style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">2</span>
+                  <div><strong>Optimal K Selection:</strong> The Elbow heuristic (WCSS curve bend) combined with Silhouette Coefficient peak determines natural data boundaries.</div>
+                </div>
+                <div class="d-flex gap-3 align-items-start">
+                  <span class="badge bg-primary rounded-circle p-2" style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">3</span>
+                  <div><strong>Empirical Dynamic Profiling:</strong> Unscaled centroid statistics dynamically title and interpret segments (e.g. High-Value Champions vs Budget Savers).</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Modules -->
+      <h5 class="fw-bold mb-3" style="font-size: 16px; color: var(--primary-navy);">Project Modules</h5>
+      <div class="row g-3">
+        <div class="col-md-4 col-sm-6">
+          <a href="/dataset" class="text-decoration-none">
+            <div class="card-custom p-3 h-100 d-flex flex-row align-items-center gap-3">
+              <div class="kpi-icon-wrap bg-light text-primary"><i class="bi bi-database-fill"></i></div>
+              <div>
+                <div class="fw-bold text-dark" style="font-size: 14px;">Dataset Explorer</div>
+                <div class="text-muted" style="font-size: 12px;">Inspect records, upload CSV & summaries</div>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <a href="/analysis" class="text-decoration-none">
+            <div class="card-custom p-3 h-100 d-flex flex-row align-items-center gap-3">
+              <div class="kpi-icon-wrap bg-light text-success"><i class="bi bi-graph-up"></i></div>
+              <div>
+                <div class="fw-bold text-dark" style="font-size: 14px;">Exploratory EDA</div>
+                <div class="text-muted" style="font-size: 12px;">Histograms, scatter & correlation heatmaps</div>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <a href="/training" class="text-decoration-none">
+            <div class="card-custom p-3 h-100 d-flex flex-row align-items-center gap-3">
+              <div class="kpi-icon-wrap bg-light text-warning"><i class="bi bi-cpu"></i></div>
+              <div>
+                <div class="fw-bold text-dark" style="font-size: 14px;">Model Training</div>
+                <div class="text-muted" style="font-size: 12px;">Tune K, evaluate Elbow & Silhouette curves</div>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <a href="/clusters" class="text-decoration-none">
+            <div class="card-custom p-3 h-100 d-flex flex-row align-items-center gap-3">
+              <div class="kpi-icon-wrap bg-light text-info"><i class="bi bi-pie-chart-fill"></i></div>
+              <div>
+                <div class="fw-bold text-dark" style="font-size: 14px;">Cluster Personas</div>
+                <div class="text-muted" style="font-size: 12px;">Segment archetypes & business strategies</div>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <a href="/prediction" class="text-decoration-none">
+            <div class="card-custom p-3 h-100 d-flex flex-row align-items-center gap-3">
+              <div class="kpi-icon-wrap bg-light text-danger"><i class="bi bi-person-bounding-box"></i></div>
+              <div>
+                <div class="fw-bold text-dark" style="font-size: 14px;">Live Inference</div>
+                <div class="text-muted" style="font-size: 12px;">Predict customer segment in real-time</div>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <a href="/reports" class="text-decoration-none">
+            <div class="card-custom p-3 h-100 d-flex flex-row align-items-center gap-3">
+              <div class="kpi-icon-wrap bg-light text-secondary"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+              <div>
+                <div class="fw-bold text-dark" style="font-size: 14px;">Academic Reports</div>
+                <div class="text-muted" style="font-size: 12px;">Export CSV datasets & PDF documentation</div>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Dependencies: Bootstrap 5, Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Application Scripts -->
+  <script src="js/app.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Segment Predictor | Live Machine Learning</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-badge">Academic ML Project</div>
+      <div class="brand-title">
+        <i class="bi bi-diagram-3-fill"></i>
+        <span>CustomerAI</span>
+      </div>
+      <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">K-Means Segmentation</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Core Navigation</div>
+      <a href="/" class="nav-link">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/dataset" class="nav-link">
+        <i class="bi bi-table"></i>
+        <span>Dataset Explorer</span>
+      </a>
+      <a href="/analysis" class="nav-link">
+        <i class="bi bi-bar-chart-line"></i>
+        <span>Exploratory EDA</span>
+      </a>
+
+      <div class="nav-section-label">Machine Learning</div>
+      <a href="/training" class="nav-link">
+        <i class="bi bi-cpu"></i>
+        <span>Model Training</span>
+      </a>
+      <a href="/clusters" class="nav-link">
+        <i class="bi bi-pie-chart"></i>
+        <span>Cluster Profiles</span>
+      </a>
+      <a href="/prediction" class="nav-link active">
+        <i class="bi bi-person-check"></i>
+        <span>Live Predictor</span>
+      </a>
+
+      <div class="nav-section-label">Documentation</div>
+      <a href="/reports" class="nav-link">
+        <i class="bi bi-file-earmark-pdf"></i>
+        <span>Reports & Export</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-indicator">
+        <span class="dot"></span>
+        <span>Inference Engine Ready</span>
+      </div>
+      <div>Fitted StandardScaler Active</div>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <header class="top-navbar">
+      <div class="d-flex align-items-center gap-3">
+        <button id="sidebar-toggle" class="btn btn-outline-custom d-lg-none">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h1 class="page-header-title">Live Customer Segment Inference</h1>
+          <p class="page-header-subtitle mb-0">Classify new customer attributes using the fitted StandardScaler and K-Means centroids</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="content-body">
+      <div id="alert-container"></div>
+
+      <div class="row g-4 mb-4">
+        <!-- Input Form Card -->
+        <div class="col-lg-5">
+          <div class="card-custom h-100">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-person-gear"></i> Customer Demographic & Behavioral Input</h5>
+            </div>
+            <div class="card-body-custom">
+              <form id="prediction-form" class="d-flex flex-column gap-3">
+                
+                <!-- Age Input -->
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="input-age" class="form-label-custom mb-0">Customer Age (Years):</label>
+                    <span class="range-value-pill" id="age-display">30 yrs</span>
+                  </div>
+                  <div class="range-slider-wrap">
+                    <input type="range" class="form-range" id="input-age" min="18" max="75" value="30">
+                    <input type="number" class="form-control form-control-sm text-center" id="input-age-num" min="18" max="75" value="30" style="width: 70px;">
+                  </div>
+                </div>
+
+                <!-- Annual Income Input -->
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="input-income" class="form-label-custom mb-0">Annual Income ($k):</label>
+                    <span class="range-value-pill" id="income-display">$65k</span>
+                  </div>
+                  <div class="range-slider-wrap">
+                    <input type="range" class="form-range" id="input-income" min="15" max="140" value="65">
+                    <input type="number" class="form-control form-control-sm text-center" id="input-income-num" min="15" max="140" value="65" style="width: 70px;">
+                  </div>
+                </div>
+
+                <!-- Spending Score Input -->
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="input-spending" class="form-label-custom mb-0">Spending Score (1–100):</label>
+                    <span class="range-value-pill" id="spending-display">75 / 100</span>
+                  </div>
+                  <div class="range-slider-wrap">
+                    <input type="range" class="form-range" id="input-spending" min="1" max="100" value="75">
+                    <input type="number" class="form-control form-control-sm text-center" id="input-spending-num" min="1" max="100" value="75" style="width: 70px;">
+                  </div>
+                </div>
+
+                <!-- Quick Presets -->
+                <div>
+                  <label class="form-label-custom mb-1" style="font-size: 11.5px; text-transform: uppercase;">Load Test Presets:</label>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary preset-btn" data-age="28" data-income="88" data-spending="85">Elite Spender</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary preset-btn" data-age="45" data-income="92" data-spending="18">Prudent Affluent</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary preset-btn" data-age="22" data-income="25" data-spending="78">Young Trendsetter</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary preset-btn" data-age="50" data-income="22" data-spending="14">Budget Saver</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary preset-btn" data-age="38" data-income="60" data-spending="52">Average Core</button>
+                  </div>
+                </div>
+
+                <div class="mt-2 pt-2 border-top">
+                  <button type="submit" id="btn-predict" class="btn btn-primary-custom w-100 justify-content-center py-2">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    <span>Predict Customer Segment</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output Prediction Result Card -->
+        <div class="col-lg-7">
+          <div class="card-custom h-100" id="result-card">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-award-fill"></i> Segmentation Prediction Results</h5>
+              <span id="result-badge" class="badge bg-secondary">Awaiting Input</span>
+            </div>
+            <div class="card-body-custom d-flex flex-column justify-content-center" id="result-body">
+              <div class="text-center py-5 text-muted">
+                <i class="bi bi-person-bounding-box display-4 mb-3 d-block text-slate-300"></i>
+                <div class="fw-semibold">No Customer Classified Yet</div>
+                <div style="font-size: 13px;">Adjust values on the left and click "Predict Customer Segment" to run inference.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-time Position Visualizer on Customer Space -->
+      <div class="card-custom mb-4">
+        <div class="card-header-custom">
+          <h5><i class="bi bi-geo-alt-fill"></i> Spatial Position Relative to Clustered Cohort</h5>
+          <span class="badge bg-light text-primary border">2D Feature Coordinate</span>
+        </div>
+        <div class="card-body-custom">
+          <div style="height: 380px;">
+            <canvas id="chart-predict-scatter"></canvas>
+          </div>
+          <div class="mt-2 text-muted text-center" style="font-size: 12px;">
+            <i class="bi bi-pin-map-fill text-danger me-1"></i> Red Star (★) = Target Customer Location | Circles = Clustered Customer Base
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/charts.js"></script>
+  <script>
+    let clusterPoints = [];
+    let clusterCentroids = [];
+    let clusterProfiles = [];
+    let scatterChartInstance = null;
+
+    // Sync sliders and number inputs
+    function setupInputSync(sliderId, numId, displayId, suffix) {
+      const slider = document.getElementById(sliderId);
+      const num = document.getElementById(numId);
+      const display = document.getElementById(displayId);
+
+      function update(val) {
+        slider.value = val;
+        num.value = val;
+        display.textContent = `${suffix.replace('X', val)}`;
+      }
+
+      slider.addEventListener('input', (e) => update(e.target.value));
+      num.addEventListener('input', (e) => update(e.target.value));
+    }
+
+    setupInputSync('input-age', 'input-age-num', 'age-display', 'X yrs');
+    setupInputSync('input-income', 'input-income-num', 'income-display', '$Xk');
+    setupInputSync('input-spending', 'input-spending-num', 'spending-display', 'X / 100');
+
+    // Preset buttons
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const age = btn.getAttribute('data-age');
+        const inc = btn.getAttribute('data-income');
+        const spend = btn.getAttribute('data-spending');
+
+        document.getElementById('input-age').value = age;
+        document.getElementById('input-age-num').value = age;
+        document.getElementById('age-display').textContent = `${age} yrs`;
+
+        document.getElementById('input-income').value = inc;
+        document.getElementById('input-income-num').value = inc;
+        document.getElementById('income-display').textContent = `$${inc}k`;
+
+        document.getElementById('input-spending').value = spend;
+        document.getElementById('input-spending-num').value = spend;
+        document.getElementById('spending-display').textContent = `${spend} / 100`;
+
+        document.getElementById('prediction-form').dispatchEvent(new Event('submit'));
+      });
+    });
+
+    async function initPredictor() {
+      try {
+        const clusterData = await App.getClusters();
+        clusterPoints = clusterData.points || [];
+        clusterCentroids = clusterData.centroids || [];
+        clusterProfiles = clusterData.profiles || [];
+
+        renderBasePredictScatter(null);
+      } catch (err) {
+        console.error('Error initializing predictor:', err);
+      }
+    }
+
+    function renderBasePredictScatter(targetPoint) {
+      const canvas = document.getElementById('chart-predict-scatter');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      if (scatterChartInstance) {
+        scatterChartInstance.destroy();
+      }
+
+      // Group points by cluster
+      const clusterGroups = {};
+      clusterPoints.forEach(pt => {
+        if (!clusterGroups[pt.cluster]) clusterGroups[pt.cluster] = [];
+        clusterGroups[pt.cluster].push({ x: pt.income, y: pt.spending });
+      });
+
+      const datasets = [];
+      const palette = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+
+      Object.keys(clusterGroups).sort((a,b) => a-b).forEach(cId => {
+        const c = Number(cId);
+        datasets.push({
+          label: `Cluster ${c}`,
+          data: clusterGroups[c],
+          backgroundColor: palette[c % palette.length],
+          pointRadius: 4.5,
+          pointHoverRadius: 6
+        });
+      });
+
+      // Target Customer Highlight
+      if (targetPoint) {
+        datasets.push({
+          label: '★ Predicted Customer',
+          data: [{ x: targetPoint.income, y: targetPoint.spending }],
+          backgroundColor: '#dc2626',
+          borderColor: '#ffffff',
+          borderWidth: 2,
+          pointRadius: 13,
+          pointHoverRadius: 15,
+          pointStyle: 'star'
+        });
+      }
+
+      scatterChartInstance = new Chart(ctx, {
+        type: 'scatter',
+        data: { datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 } } },
+            tooltip: { backgroundColor: '#0f172a' }
+          },
+          scales: {
+            x: { title: { display: true, text: 'Annual Income (k$)', color: '#334155', font: { weight: 'bold' } }, grid: { color: '#f1f5f9' } },
+            y: { title: { display: true, text: 'Spending Score (1–100)', color: '#334155', font: { weight: 'bold' } }, grid: { color: '#f1f5f9' } }
+          }
+        }
+      });
+    }
+
+    // Prediction Form Submission
+    document.getElementById('prediction-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const age = Number(document.getElementById('input-age').value);
+      const income = Number(document.getElementById('input-income').value);
+      const spending = Number(document.getElementById('input-spending').value);
+
+      const btn = document.getElementById('btn-predict');
+      const resultBadge = document.getElementById('result-badge');
+      const resultBody = document.getElementById('result-body');
+
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Classifying Customer...`;
+
+      try {
+        const pred = await App.predictCustomer({
+          age: age,
+          annual_income: income,
+          spending_score: spending
+        });
+
+        resultBadge.className = 'badge';
+        resultBadge.style.backgroundColor = pred.badge_color || '#2563eb';
+        resultBadge.textContent = `Cluster ${pred.predicted_cluster}`;
+
+        resultBody.innerHTML = `
+          <div class="p-2">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div>
+                <h3 class="h4 fw-bold mb-1" style="color: var(--primary-navy);">${pred.segment_name}</h3>
+                <div class="fw-semibold" style="color: ${pred.badge_color || '#2563eb'}; font-size: 14px;">
+                  <i class="bi bi-tag-fill me-1"></i>${pred.archetype}
+                </div>
+              </div>
+              <span class="badge bg-light text-dark border p-2 text-end">
+                <div style="font-size: 10px; text-transform: uppercase; color: var(--text-muted);">Centroid Distance</div>
+                <div class="fw-bold" style="font-size: 14px;">${pred.distance_to_centroid} (Normalized)</div>
+              </span>
+            </div>
+
+            <!-- Profile Overview Box -->
+            <div class="p-3 bg-light rounded border mb-3">
+              <div class="fw-bold mb-1" style="font-size: 13px; color: var(--primary-navy);">
+                <i class="bi bi-person-vcard-fill text-primary me-1"></i> Customer Behavioral Persona
+              </div>
+              <p class="mb-0 text-secondary" style="font-size: 13px; line-height: 1.5;">
+                ${pred.characteristics}
+              </p>
+            </div>
+
+            <!-- Strategic Recommendation -->
+            <div class="persona-strategy-box">
+              <strong><i class="bi bi-bullseye me-1"></i> Recommended Marketing & Retention Action Plan</strong>
+              <div style="font-size: 13px;">${pred.recommendation}</div>
+            </div>
+          </div>
+        `;
+
+        // Update plot with target customer location
+        renderBasePredictScatter({ income: income, spending: spending });
+
+      } catch (err) {
+        resultBody.innerHTML = `
+          <div class="alert alert-danger py-3 mb-0">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> ${err.message}
+          </div>
+        `;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="bi bi-lightning-charge-fill"></i> Predict Customer Segment`;
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', initPredictor);
+  </script>
+</body>
+</html>

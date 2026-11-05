@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dataset Explorer | Customer Segmentation</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-badge">Academic ML Project</div>
+      <div class="brand-title">
+        <i class="bi bi-diagram-3-fill"></i>
+        <span>CustomerAI</span>
+      </div>
+      <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">K-Means Segmentation</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Core Navigation</div>
+      <a href="/" class="nav-link">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/dataset" class="nav-link active">
+        <i class="bi bi-table"></i>
+        <span>Dataset Explorer</span>
+      </a>
+      <a href="/analysis" class="nav-link">
+        <i class="bi bi-bar-chart-line"></i>
+        <span>Exploratory EDA</span>
+      </a>
+
+      <div class="nav-section-label">Machine Learning</div>
+      <a href="/training" class="nav-link">
+        <i class="bi bi-cpu"></i>
+        <span>Model Training</span>
+      </a>
+      <a href="/clusters" class="nav-link">
+        <i class="bi bi-pie-chart"></i>
+        <span>Cluster Profiles</span>
+      </a>
+      <a href="/prediction" class="nav-link">
+        <i class="bi bi-person-check"></i>
+        <span>Live Predictor</span>
+      </a>
+
+      <div class="nav-section-label">Documentation</div>
+      <a href="/reports" class="nav-link">
+        <i class="bi bi-file-earmark-pdf"></i>
+        <span>Reports & Export</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-indicator">
+        <span class="dot"></span>
+        <span>Dataset Loaded</span>
+      </div>
+      <div>Source: Mall Customers</div>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <header class="top-navbar">
+      <div class="d-flex align-items-center gap-3">
+        <button id="sidebar-toggle" class="btn btn-outline-custom d-lg-none">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h1 class="page-header-title">Dataset Explorer</h1>
+          <p class="page-header-subtitle mb-0">Inspect raw records, feature schemas, missing values, and upload custom datasets</p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <a href="/api/export/csv" class="btn btn-navy-custom">
+          <i class="bi bi-download"></i>
+          <span>Download CSV</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="content-body">
+      <div id="alert-container"></div>
+
+      <!-- CSV Upload & Dataset Dimensions Row -->
+      <div class="row g-4 mb-4">
+        <!-- Upload Card -->
+        <div class="col-lg-7">
+          <div class="card-custom h-100">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-cloud-arrow-up-fill"></i> Upload Custom Customer Dataset</h5>
+              <span class="badge bg-light text-secondary border">CSV Format</span>
+            </div>
+            <div class="card-body-custom">
+              <form id="upload-form" class="row g-3 align-items-center">
+                <div class="col-sm-8">
+                  <input type="file" id="csv-file-input" class="form-control" accept=".csv" required>
+                  <div class="form-text text-muted" style="font-size: 11.5px;">
+                    Must include numerical columns for <strong>Annual Income</strong> and <strong>Spending Score</strong> (Age and Gender optional).
+                  </div>
+                </div>
+                <div class="col-sm-4">
+                  <button type="submit" id="upload-btn" class="btn btn-primary-custom w-100 justify-content-center">
+                    <i class="bi bi-upload"></i>
+                    <span>Validate & Load</span>
+                  </button>
+                </div>
+              </form>
+              <div id="upload-feedback" class="mt-3"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dataset Dimensions & Metrics Card -->
+        <div class="col-lg-5">
+          <div class="card-custom h-100">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-info-circle-fill"></i> Dataset Metadata</h5>
+            </div>
+            <div class="card-body-custom">
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="p-3 bg-light rounded text-center border">
+                    <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 600;">Total Rows</div>
+                    <div class="h3 fw-bold text-primary mb-0" id="meta-rows">---</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-3 bg-light rounded text-center border">
+                    <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 600;">Total Features</div>
+                    <div class="h3 fw-bold text-primary mb-0" id="meta-cols">---</div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3 text-muted" style="font-size: 12px;">
+                <i class="bi bi-check-circle-fill text-success"></i> Default Dataset: <strong>Mall Customers Segmentation (Kaggle/UCI)</strong>.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Columns & Missing-Value Analysis -->
+      <div class="card-custom mb-4">
+        <div class="card-header-custom">
+          <h5><i class="bi bi-list-check"></i> Feature Schema & Missing-Value Verification</h5>
+        </div>
+        <div class="card-body-custom p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="schema-table">
+              <thead class="table-light">
+                <tr>
+                  <th style="padding-left: 20px;">Column Name</th>
+                  <th>Inferred Data Type</th>
+                  <th>Missing Values (Count)</th>
+                  <th>Missing Percentage (%)</th>
+                  <th>Data Integrity Status</th>
+                </tr>
+              </thead>
+              <tbody id="schema-tbody">
+                <tr><td colspan="5" class="text-center py-4 text-muted">Loading schema...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistical Summary Table -->
+      <div class="card-custom mb-4">
+        <div class="card-header-custom">
+          <h5><i class="bi bi-calculator-fill"></i> Parametric Statistical Summary</h5>
+          <span class="badge bg-primary">Numerical Dimensions</span>
+        </div>
+        <div class="card-body-custom p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="stats-table">
+              <thead class="table-light">
+                <tr id="stats-thead-row">
+                  <th style="padding-left: 20px;">Statistic</th>
+                </tr>
+              </thead>
+              <tbody id="stats-tbody">
+                <tr><td class="text-center py-4 text-muted">Computing descriptive metrics...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Complete Dataset Table with Pagination -->
+      <div class="card-custom mb-4">
+        <div class="card-header-custom">
+          <h5><i class="bi bi-table"></i> Complete Customer Records</h5>
+          <div class="d-flex align-items-center gap-2">
+            <input type="text" id="table-search" class="form-control form-control-sm" placeholder="Search records..." style="width: 200px;">
+          </div>
+        </div>
+        <div class="card-body-custom p-0">
+          <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+            <table class="table table-striped table-hover align-middle mb-0" id="dataset-records-table">
+              <thead class="table-dark sticky-top">
+                <tr id="records-header-row">
+                  <th>#</th>
+                </tr>
+              </thead>
+              <tbody id="records-tbody">
+                <tr><td class="text-center py-4 text-muted">Loading customer records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Pagination Controls -->
+          <div class="d-flex justify-content-between align-items-center p-3 border-top">
+            <div style="font-size: 13px; color: var(--text-secondary);" id="pagination-info">
+              Showing records
+            </div>
+            <div class="btn-group btn-group-sm">
+              <button id="btn-prev-page" class="btn btn-outline-secondary" disabled><i class="bi bi-chevron-left"></i> Previous</button>
+              <button id="btn-next-page" class="btn btn-outline-secondary">Next <i class="bi bi-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    let currentPage = 1;
+    const pageSize = 50;
+    let totalRecords = 0;
+    let cachedRows = [];
+
+    async function loadDatasetView() {
+      try {
+        const summaryRes = await App.getSummary();
+        const summary = summaryRes.dataset_summary || {};
+        
+        document.getElementById('meta-rows').textContent = summary.total_records || '0';
+        document.getElementById('meta-cols').textContent = summary.total_columns || '0';
+        totalRecords = summary.total_records || 0;
+
+        // Render Schema Table
+        const schemaTbody = document.getElementById('schema-tbody');
+        schemaTbody.innerHTML = '';
+        (summary.columns || []).forEach(col => {
+          const isClean = col.null_count === 0;
+          schemaTbody.innerHTML += `
+            <tr>
+              <td style="padding-left: 20px; font-weight: 600;">${col.name}</td>
+              <td><span class="badge bg-light text-dark border">${col.type}</span></td>
+              <td>${col.null_count}</td>
+              <td>${col.null_percentage}%</td>
+              <td>
+                <span class="badge ${isClean ? 'bg-success' : 'bg-danger'}">
+                  ${isClean ? '<i class="bi bi-check-circle"></i> Clean' : '<i class="bi bi-exclamation-triangle"></i> Contains Nulls'}
+                </span>
+              </td>
+            </tr>
+          `;
+        });
+
+        // Render Stats Table
+        const stats = summary.statistics || {};
+        const statCols = Object.keys(stats);
+        if (statCols.length > 0) {
+          const theadRow = document.getElementById('stats-thead-row');
+          theadRow.innerHTML = '<th style="padding-left: 20px;">Statistic</th>' + statCols.map(c => `<th>${c}</th>`).join('');
+
+          const statMetrics = ['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max'];
+          const statsTbody = document.getElementById('stats-tbody');
+          statsTbody.innerHTML = '';
+          statMetrics.forEach(metric => {
+            let rowHtml = `<td style="padding-left: 20px; font-weight: 600; text-transform: uppercase; font-size: 11.5px; color: var(--text-secondary);">${metric}</td>`;
+            statCols.forEach(col => {
+              const val = stats[col] && stats[col][metric] !== undefined ? stats[col][metric] : '-';
+              rowHtml += `<td><strong>${val}</strong></td>`;
+            });
+            statsTbody.innerHTML += `<tr>${rowHtml}</tr>`;
+          });
+        }
+
+        // Load Paginated Records
+        await loadRecordsPage(1);
+
+      } catch (err) {
+        console.error('Error loading dataset view:', err);
+        App.showAlert(`Failed to load dataset details: ${err.message}`, 'danger');
+      }
+    }
+
+    async function loadRecordsPage(page) {
+      currentPage = page;
+      const dataRes = await App.getDataset(page, pageSize);
+      cachedRows = dataRes.data || [];
+      const columns = dataRes.columns || [];
+
+      // Build Headers
+      const headerRow = document.getElementById('records-header-row');
+      headerRow.innerHTML = columns.map(c => `<th>${c}</th>`).join('');
+
+      renderRecordsRows(cachedRows, columns);
+
+      // Update Pagination info
+      const start = (page - 1) * pageSize + 1;
+      const end = Math.min(page * pageSize, totalRecords);
+      document.getElementById('pagination-info').textContent = `Showing ${start} to ${end} of ${totalRecords} records`;
+
+      document.getElementById('btn-prev-page').disabled = (page <= 1);
+      document.getElementById('btn-next-page').disabled = (end >= totalRecords);
+    }
+
+    function renderRecordsRows(rows, columns) {
+      const tbody = document.getElementById('records-tbody');
+      tbody.innerHTML = '';
+      if (!rows || rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${columns.length || 5}" class="text-center py-4 text-muted">No records found.</td></tr>`;
+        return;
+      }
+
+      rows.forEach(row => {
+        let rowHtml = '';
+        columns.forEach(col => {
+          rowHtml += `<td>${row[col] !== undefined ? row[col] : '-'}</td>`;
+        });
+        tbody.innerHTML += `<tr>${rowHtml}</tr>`;
+      });
+    }
+
+    // Search filter in records
+    document.getElementById('table-search')?.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase().trim();
+      if (!term) {
+        const columns = Object.keys(cachedRows[0] || {});
+        renderRecordsRows(cachedRows, columns);
+        return;
+      }
+      const filtered = cachedRows.filter(row => {
+        return Object.values(row).some(val => String(val).toLowerCase().includes(term));
+      });
+      const columns = Object.keys(cachedRows[0] || {});
+      renderRecordsRows(filtered, columns);
+    });
+
+    // Pagination events
+    document.getElementById('btn-prev-page')?.addEventListener('click', () => {
+      if (currentPage > 1) loadRecordsPage(currentPage - 1);
+    });
+    document.getElementById('btn-next-page')?.addEventListener('click', () => {
+      if (currentPage * pageSize < totalRecords) loadRecordsPage(currentPage + 1);
+    });
+
+    // Upload Form Submit
+    document.getElementById('upload-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('csv-file-input');
+      const feedback = document.getElementById('upload-feedback');
+      const btn = document.getElementById('upload-btn');
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        feedback.innerHTML = `<div class="alert alert-warning py-2 mb-0">Please choose a CSV file.</div>`;
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Validating...`;
+      feedback.innerHTML = '';
+
+      try {
+        const res = await App.uploadCSV(fileInput.files[0]);
+        feedback.innerHTML = `<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle-fill me-1"></i> ${res.message}</div>`;
+        await loadDatasetView();
+      } catch (err) {
+        feedback.innerHTML = `<div class="alert alert-danger py-2 mb-0"><i class="bi bi-exclamation-triangle-fill me-1"></i> ${err.message}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="bi bi-upload"></i> Validate & Load`;
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadDatasetView);
+  </script>
+</body>
+</html>

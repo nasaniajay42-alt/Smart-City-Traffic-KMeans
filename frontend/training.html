@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Training & Optimization | Customer Segmentation</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-badge">Academic ML Project</div>
+      <div class="brand-title">
+        <i class="bi bi-diagram-3-fill"></i>
+        <span>CustomerAI</span>
+      </div>
+      <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">K-Means Segmentation</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Core Navigation</div>
+      <a href="/" class="nav-link">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/dataset" class="nav-link">
+        <i class="bi bi-table"></i>
+        <span>Dataset Explorer</span>
+      </a>
+      <a href="/analysis" class="nav-link">
+        <i class="bi bi-bar-chart-line"></i>
+        <span>Exploratory EDA</span>
+      </a>
+
+      <div class="nav-section-label">Machine Learning</div>
+      <a href="/training" class="nav-link active">
+        <i class="bi bi-cpu"></i>
+        <span>Model Training</span>
+      </a>
+      <a href="/clusters" class="nav-link">
+        <i class="bi bi-pie-chart"></i>
+        <span>Cluster Profiles</span>
+      </a>
+      <a href="/prediction" class="nav-link">
+        <i class="bi bi-person-check"></i>
+        <span>Live Predictor</span>
+      </a>
+
+      <div class="nav-section-label">Documentation</div>
+      <a href="/reports" class="nav-link">
+        <i class="bi bi-file-earmark-pdf"></i>
+        <span>Reports & Export</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-indicator">
+        <span class="dot"></span>
+        <span>Training Engine Ready</span>
+      </div>
+      <div>Init: K-Means++ (n_init=20)</div>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <header class="top-navbar">
+      <div class="d-flex align-items-center gap-3">
+        <button id="sidebar-toggle" class="btn btn-outline-custom d-lg-none">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h1 class="page-header-title">K-Means Model Training & Optimization</h1>
+          <p class="page-header-subtitle mb-0">Feature selection, StandardScaler normalization, Elbow curve & Silhouette analysis</p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <a href="/clusters" class="btn btn-navy-custom">
+          <i class="bi bi-pie-chart-fill"></i>
+          <span>View Cluster Personas</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="content-body">
+      <div id="alert-container"></div>
+
+      <!-- Training Setup Card -->
+      <div class="card-custom mb-4">
+        <div class="card-header-custom">
+          <h5><i class="bi bi-sliders"></i> Hyperparameter Tuning & Model Configuration</h5>
+          <span class="badge bg-primary" id="active-model-badge">Active K: 5</span>
+        </div>
+        <div class="card-body-custom">
+          <form id="train-form" class="row g-4 align-items-center">
+            <!-- Feature Selection -->
+            <div class="col-lg-5">
+              <label class="form-label-custom">Select Training Features (StandardScaled):</label>
+              <div class="d-flex flex-wrap gap-3">
+                <div class="form-check">
+                  <input class="form-check-input feature-checkbox" type="checkbox" value="Age" id="feat-age" checked>
+                  <label class="form-check-label" for="feat-age" style="font-size: 13px;">Age</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input feature-checkbox" type="checkbox" value="Annual Income (k$)" id="feat-income" checked>
+                  <label class="form-check-label" for="feat-income" style="font-size: 13px;">Annual Income (k$)</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input feature-checkbox" type="checkbox" value="Spending Score (1-100)" id="feat-spending" checked>
+                  <label class="form-check-label" for="feat-spending" style="font-size: 13px;">Spending Score (1-100)</label>
+                </div>
+              </div>
+              <div class="text-muted mt-1" style="font-size: 11.5px;">At least 2 features required for distance-based clustering.</div>
+            </div>
+
+            <!-- Select K Slider -->
+            <div class="col-lg-4">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="k-slider" class="form-label-custom mb-0">Select Number of Clusters (K):</label>
+                <span class="range-value-pill" id="k-val-display">K = 5</span>
+              </div>
+              <div class="range-slider-wrap">
+                <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">2</span>
+                <input type="range" class="form-range" id="k-slider" min="2" max="10" step="1" value="5">
+                <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">10</span>
+              </div>
+              <div class="mt-1 d-flex justify-content-between align-items-center">
+                <button type="button" id="btn-use-recommended" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size: 11.5px;">
+                  <i class="bi bi-stars text-warning"></i> Recommend Optimal K
+                </button>
+                <span id="recommended-k-tag" class="badge bg-light text-secondary border" style="font-size: 11px;">Calculating...</span>
+              </div>
+            </div>
+
+            <!-- Train Model Button -->
+            <div class="col-lg-3 text-lg-end">
+              <button type="submit" id="btn-train" class="btn btn-primary-custom w-100 justify-content-center py-2">
+                <i class="bi bi-play-circle-fill"></i>
+                <span>Train K-Means Model</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Training Status Feedback Alert -->
+      <div id="training-status-alert"></div>
+
+      <!-- Elbow Curve & Silhouette Comparison Charts -->
+      <div class="row g-4 mb-4">
+        <!-- Elbow Method Chart -->
+        <div class="col-lg-6">
+          <div class="card-custom h-100">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-graph-down"></i> Elbow Method (Inertia / WCSS)</h5>
+              <span class="badge bg-light text-primary border">K = 2 to 10</span>
+            </div>
+            <div class="card-body-custom">
+              <div style="height: 300px;">
+                <canvas id="chart-elbow"></canvas>
+              </div>
+              <div class="mt-3 text-muted" style="font-size: 12px;">
+                <strong>Mathematical Principle:</strong> The Elbow heuristic evaluates the rate of decrease in Within-Cluster Sum of Squares (Inertia). The inflection point represents diminishing returns for added clusters.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Silhouette Score Comparison Chart -->
+        <div class="col-lg-6">
+          <div class="card-custom h-100">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-bar-chart-fill"></i> Silhouette Score Comparison</h5>
+              <span class="badge bg-light text-success border">Higher is Better</span>
+            </div>
+            <div class="card-body-custom">
+              <div style="height: 300px;">
+                <canvas id="chart-silhouette"></canvas>
+              </div>
+              <div class="mt-3 text-muted" style="font-size: 12px;">
+                <strong>Mathematical Principle:</strong> Measures intra-cluster cohesion \(a(i)\) vs nearest neighbor separation \(b(i)\): \(s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}\). Values closer to +1.0 indicate dense, well-separated clusters.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trained Model Metrics Table -->
+      <div class="card-custom mb-4">
+        <div class="card-header-custom">
+          <h5><i class="bi bi-check2-circle"></i> Active Trained Model Metrics</h5>
+          <span class="badge bg-success" id="trained-status-badge">Trained Model Active</span>
+        </div>
+        <div class="card-body-custom">
+          <div class="row g-3 text-center">
+            <div class="col-md-2 col-6">
+              <div class="p-3 bg-light rounded border">
+                <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 600;">Selected K</div>
+                <div class="h3 fw-bold text-primary mb-0" id="metric-k">5</div>
+              </div>
+            </div>
+            <div class="col-md-2 col-6">
+              <div class="p-3 bg-light rounded border">
+                <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 600;">Actual Inertia</div>
+                <div class="h3 fw-bold text-dark mb-0" id="metric-inertia">---</div>
+              </div>
+            </div>
+            <div class="col-md-3 col-6">
+              <div class="p-3 bg-light rounded border">
+                <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 600;">Silhouette Score</div>
+                <div class="h3 fw-bold text-success mb-0" id="metric-silhouette">---</div>
+              </div>
+            </div>
+            <div class="col-md-2 col-6">
+              <div class="p-3 bg-light rounded border">
+                <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 600;">Davies-Bouldin</div>
+                <div class="h3 fw-bold text-info mb-0" id="metric-db">---</div>
+              </div>
+            </div>
+            <div class="col-md-3 col-12">
+              <div class="p-3 bg-light rounded border">
+                <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 600;">Calinski-Harabasz</div>
+                <div class="h3 fw-bold text-warning mb-0" id="metric-ch">---</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/charts.js"></script>
+  <script>
+    let recommendedKVal = 5;
+
+    function getSelectedFeatures() {
+      const checkedBoxes = document.querySelectorAll('.feature-checkbox:checked');
+      return Array.from(checkedBoxes).map(cb => cb.value);
+    }
+
+    async function loadElbowAndMetrics() {
+      try {
+        const features = getSelectedFeatures();
+        if (features.length < 2) {
+          App.showAlert('Please select at least 2 features to compute clustering.', 'warning');
+          return;
+        }
+
+        const elbowData = await App.getElbow(features.join(','));
+        const results = elbowData.results || {};
+
+        recommendedKVal = results.recommended_k || 5;
+        document.getElementById('recommended-k-tag').innerHTML = `★ Recommended: <strong>K = ${recommendedKVal}</strong>`;
+
+        // Render Charts
+        Charts.renderElbowChart('chart-elbow', results.k_values, results.inertias, recommendedKVal);
+        Charts.renderSilhouetteChart('chart-silhouette', results.k_values, results.silhouette_scores, recommendedKVal);
+
+        // Load active model summary
+        const summaryData = await App.getSummary();
+        const model = summaryData.model_info || {};
+        if (model.trained) {
+          document.getElementById('metric-k').textContent = model.n_clusters;
+          document.getElementById('metric-inertia').textContent = model.inertia;
+          document.getElementById('metric-silhouette').textContent = model.silhouette_score;
+          document.getElementById('metric-db').textContent = model.davies_bouldin_score || 'N/A';
+          document.getElementById('metric-ch').textContent = model.calinski_harabasz_score || 'N/A';
+          document.getElementById('active-model-badge').textContent = `Active K: ${model.n_clusters}`;
+          document.getElementById('k-slider').value = model.n_clusters;
+          document.getElementById('k-val-display').textContent = `K = ${model.n_clusters}`;
+        }
+      } catch (err) {
+        console.error('Error loading training charts:', err);
+        App.showAlert(`Could not evaluate Elbow curves: ${err.message}`, 'danger');
+      }
+    }
+
+    // Slider listener
+    const kSlider = document.getElementById('k-slider');
+    const kValDisplay = document.getElementById('k-val-display');
+    kSlider?.addEventListener('input', (e) => {
+      kValDisplay.textContent = `K = ${e.target.value}`;
+    });
+
+    // Recommend K quick select
+    document.getElementById('btn-use-recommended')?.addEventListener('click', () => {
+      kSlider.value = recommendedKVal;
+      kValDisplay.textContent = `K = ${recommendedKVal}`;
+    });
+
+    // Feature checkbox change recomputes elbow
+    document.querySelectorAll('.feature-checkbox').forEach(cb => {
+      cb.addEventListener('change', () => {
+        loadElbowAndMetrics();
+      });
+    });
+
+    // Train Model Submit
+    document.getElementById('train-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const features = getSelectedFeatures();
+      const k = Number(kSlider.value);
+      const btn = document.getElementById('btn-train');
+      const statusAlert = document.getElementById('training-status-alert');
+
+      if (features.length < 2) {
+        App.showAlert('Select at least 2 features before training.', 'warning');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Training Model...`;
+      statusAlert.innerHTML = `
+        <div class="alert alert-info py-2 d-flex align-items-center gap-2">
+          <span class="spinner-border spinner-border-sm"></span>
+          <div>Fitting StandardScaler, running K-Means++ with 20 initializations (K=${k})...</div>
+        </div>
+      `;
+
+      try {
+        const res = await App.trainModel(k, features);
+
+        statusAlert.innerHTML = `
+          <div class="alert alert-success py-2 alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill me-1"></i>
+            <strong>Model Trained Successfully!</strong> K-Means model updated with K=${res.n_clusters}, Inertia=${res.inertia}, Silhouette=${res.silhouette_score}.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        `;
+
+        document.getElementById('metric-k').textContent = res.n_clusters;
+        document.getElementById('metric-inertia').textContent = res.inertia;
+        document.getElementById('metric-silhouette').textContent = res.silhouette_score;
+        document.getElementById('metric-db').textContent = res.davies_bouldin_score || 'N/A';
+        document.getElementById('metric-ch').textContent = res.calinski_harabasz_score || 'N/A';
+        document.getElementById('active-model-badge').textContent = `Active K: ${res.n_clusters}`;
+
+      } catch (err) {
+        statusAlert.innerHTML = `
+          <div class="alert alert-danger py-2 alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> ${err.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        `;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="bi bi-play-circle-fill"></i> Train K-Means Model`;
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadElbowAndMetrics);
+  </script>
+</body>
+</html>

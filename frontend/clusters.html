@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Cluster Profiles & Personas | Customer Segmentation</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-badge">Academic ML Project</div>
+      <div class="brand-title">
+        <i class="bi bi-diagram-3-fill"></i>
+        <span>CustomerAI</span>
+      </div>
+      <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">K-Means Segmentation</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Core Navigation</div>
+      <a href="/" class="nav-link">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/dataset" class="nav-link">
+        <i class="bi bi-table"></i>
+        <span>Dataset Explorer</span>
+      </a>
+      <a href="/analysis" class="nav-link">
+        <i class="bi bi-bar-chart-line"></i>
+        <span>Exploratory EDA</span>
+      </a>
+
+      <div class="nav-section-label">Machine Learning</div>
+      <a href="/training" class="nav-link">
+        <i class="bi bi-cpu"></i>
+        <span>Model Training</span>
+      </a>
+      <a href="/clusters" class="nav-link active">
+        <i class="bi bi-pie-chart"></i>
+        <span>Cluster Profiles</span>
+      </a>
+      <a href="/prediction" class="nav-link">
+        <i class="bi bi-person-check"></i>
+        <span>Live Predictor</span>
+      </a>
+
+      <div class="nav-section-label">Documentation</div>
+      <a href="/reports" class="nav-link">
+        <i class="bi bi-file-earmark-pdf"></i>
+        <span>Reports & Export</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-indicator">
+        <span class="dot"></span>
+        <span>Clusters Synchronized</span>
+      </div>
+      <div>Dynamic Personas Active</div>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <header class="top-navbar">
+      <div class="d-flex align-items-center gap-3">
+        <button id="sidebar-toggle" class="btn btn-outline-custom d-lg-none">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h1 class="page-header-title">Customer Segmentation & Personas</h1>
+          <p class="page-header-subtitle mb-0">Empirical centroid profiling, PCA dimensionality reduction, and strategic marketing playbooks</p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <a href="/prediction" class="btn btn-primary-custom">
+          <i class="bi bi-person-check-fill"></i>
+          <span>Predict Single Customer</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="content-body">
+      <div id="alert-container"></div>
+
+      <!-- Segmentation Visualizer Card with PCA Toggle -->
+      <div class="card-custom mb-4">
+        <div class="card-header-custom flex-wrap gap-2">
+          <h5><i class="bi bi-scatter-chart"></i> Interactive Customer Clustering Scatter Plot</h5>
+          <div class="d-flex align-items-center gap-2">
+            <span class="text-muted fw-semibold" style="font-size: 12.5px;">Projection Plane:</span>
+            <div class="btn-group btn-group-sm" role="group">
+              <input type="radio" class="btn-check" name="projMode" id="mode-original" autocomplete="off" checked>
+              <label class="btn btn-outline-primary" for="mode-original">Original Features (Income vs Spending)</label>
+
+              <input type="radio" class="btn-check" name="projMode" id="mode-pca" autocomplete="off">
+              <label class="btn btn-outline-primary" for="mode-pca">PCA 2D Projection (PC1 vs PC2)</label>
+            </div>
+          </div>
+        </div>
+        <div class="card-body-custom">
+          <!-- PCA Context Banner (shown if PCA active) -->
+          <div id="pca-info-banner" class="alert alert-secondary py-2 mb-3 d-none" style="font-size: 12.5px;">
+            <i class="bi bi-info-circle-fill text-primary me-1"></i>
+            <strong>Principal Component Analysis (PCA) Mode:</strong> Projects multi-dimensional standardized space into orthogonal 2D coordinates that capture maximal dataset variance without distorting cluster boundaries. Centroid stars (★) mark the projected centers.
+          </div>
+          <div style="height: 420px;">
+            <canvas id="chart-cluster-scatter"></canvas>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-3 text-muted" style="font-size: 12px;">
+            <span><i class="bi bi-circle-fill text-primary me-1"></i> Circles = Customer Data Points</span>
+            <span><i class="bi bi-x-octagon-fill text-dark me-1"></i> Star / Cross = Trained Cluster Centroid</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparative Analytics Row -->
+      <div class="row g-4 mb-4">
+        <!-- Cluster Size Distribution -->
+        <div class="col-lg-5">
+          <div class="card-custom h-100">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-pie-chart-fill"></i> Segment Size & Proportion</h5>
+            </div>
+            <div class="card-body-custom d-flex flex-column justify-content-center">
+              <div style="height: 280px;">
+                <canvas id="chart-cluster-share"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature Comparison Grouped Bar Chart -->
+        <div class="col-lg-7">
+          <div class="card-custom h-100">
+            <div class="card-header-custom">
+              <h5><i class="bi bi-bar-chart-line-fill"></i> Cluster-Wise Feature Mean Comparison</h5>
+            </div>
+            <div class="card-body-custom">
+              <div style="height: 280px;">
+                <canvas id="chart-cluster-means"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Cluster Persona Cards -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h4 class="h5 fw-bold mb-1" style="color: var(--primary-navy);">Empirical Cluster Personas & Business Strategies</h4>
+          <p class="text-muted mb-0" style="font-size: 12.5px;">
+            Segment titles and behavioral archetypes are synthesized dynamically from real cluster centroid values, not arbitrary ID mappings.
+          </p>
+        </div>
+        <span class="badge bg-light text-primary border p-2" id="cluster-count-badge">--- Clusters</span>
+      </div>
+
+      <!-- Container for dynamic persona cards -->
+      <div class="row g-4 mb-4" id="cluster-personas-container">
+        <div class="col-12 text-center py-5 text-muted">Loading cluster profiles...</div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/charts.js"></script>
+  <script>
+    let clusterPoints = [];
+    let clusterCentroids = [];
+    let clusterProfiles = [];
+    let usePCA = false;
+
+    async function loadClusterProfilesPage() {
+      try {
+        const clusterData = await App.getClusters();
+        const summaryData = await App.getClusterSummary();
+
+        clusterPoints = clusterData.points || [];
+        clusterCentroids = clusterData.centroids || [];
+        clusterProfiles = clusterData.profiles || [];
+
+        document.getElementById('cluster-count-badge').textContent = `${clusterData.n_clusters} Distinct Segments Identified`;
+
+        // 1. Render Main Scatter Plot
+        renderScatter();
+
+        // 2. Render Doughnut (Cluster Sizes)
+        const labels = clusterProfiles.map(p => p.segment_name);
+        const counts = clusterProfiles.map(p => p.count);
+        Charts.renderDoughnut('chart-cluster-share', labels, counts);
+
+        // 3. Render Grouped Bar Chart
+        if (summaryData.comparison_matrix) {
+          Charts.renderComparisonBar('chart-cluster-means', summaryData.comparison_matrix);
+        }
+
+        // 4. Render Dynamic Persona Cards
+        renderPersonaCards(clusterProfiles);
+
+      } catch (err) {
+        console.error('Error loading cluster profiles:', err);
+        App.showAlert(`Could not load cluster data: ${err.message}`, 'danger');
+      }
+    }
+
+    function renderScatter() {
+      Charts.renderClusterScatter(
+        'chart-cluster-scatter',
+        clusterPoints,
+        clusterCentroids,
+        usePCA,
+        clusterProfiles
+      );
+    }
+
+    function renderPersonaCards(profiles) {
+      const container = document.getElementById('cluster-personas-container');
+      container.innerHTML = '';
+
+      if (!profiles || profiles.length === 0) {
+        container.innerHTML = `<div class="col-12 text-center text-muted">No cluster profiles available.</div>`;
+        return;
+      }
+
+      profiles.forEach(p => {
+        const centroid = p.centroid || {};
+        const ageVal = centroid['Age'] !== undefined ? centroid['Age'] : 'N/A';
+        const incVal = centroid['Annual Income (k$)'] !== undefined ? `$${centroid['Annual Income (k$)']}k` : 'N/A';
+        const spendVal = centroid['Spending Score (1-100)'] !== undefined ? `${centroid['Spending Score (1-100)']}/100` : 'N/A';
+
+        const cardHtml = `
+          <div class="col-lg-6 col-xl-4">
+            <div class="persona-card">
+              <div class="persona-header">
+                <div>
+                  <div class="persona-title">${p.segment_name}</div>
+                  <div class="persona-archetype"><i class="bi bi-tag-fill me-1"></i>${p.archetype}</div>
+                </div>
+                <span class="persona-id-badge" style="background: ${p.badge_color || '#2563eb'};">Cluster ${p.cluster_id}</span>
+              </div>
+
+              <!-- Stats Grid -->
+              <div class="persona-stats-grid">
+                <div class="persona-stat-item">
+                  <div class="persona-stat-label">Size</div>
+                  <div class="persona-stat-val text-primary">${p.count} (${p.percentage}%)</div>
+                </div>
+                <div class="persona-stat-item">
+                  <div class="persona-stat-label">Avg Income</div>
+                  <div class="persona-stat-val text-success">${incVal}</div>
+                </div>
+                <div class="persona-stat-item">
+                  <div class="persona-stat-label">Avg Spend</div>
+                  <div class="persona-stat-val text-warning">${spendVal}</div>
+                </div>
+              </div>
+
+              <div class="persona-body">
+                <strong>Behavioral Persona:</strong><br>
+                ${p.characteristics}
+              </div>
+
+              <div class="persona-strategy-box">
+                <strong><i class="bi bi-bullseye me-1"></i> Strategic Action Plan</strong>
+                ${p.recommendation}
+              </div>
+            </div>
+          </div>
+        `;
+        container.innerHTML += cardHtml;
+      });
+    }
+
+    // Toggle Projection Mode
+    document.getElementById('mode-original')?.addEventListener('change', () => {
+      usePCA = false;
+      document.getElementById('pca-info-banner').classList.add('d-none');
+      renderScatter();
+    });
+
+    document.getElementById('mode-pca')?.addEventListener('change', () => {
+      usePCA = true;
+      document.getElementById('pca-info-banner').classList.remove('d-none');
+      renderScatter();
+    });
+
+    document.addEventListener('DOMContentLoaded', loadClusterProfilesPage);
+  </script>
+</body>
+</html>
